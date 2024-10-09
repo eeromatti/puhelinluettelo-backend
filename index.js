@@ -6,7 +6,7 @@ const app = express()
 
 
 // middleware
-app.use(cors('*'))
+app.use(cors())
 app.use(morgan(':method :url :status :response-time ms :nimi'))  
 app.use(express.json())
 morgan.token('nimi', function (request, response) {
