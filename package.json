@@ -6,7 +6,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:ui": "rm -rf dist && cd ../frontend && npm run build && cp -r dist ../backend",
+    "build:ui": "rm -rf dist && cd ../puhelinluettelo-frontend && npm run build && cp -r dist ../puhelinluettelo-backend",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "Eero Hallikainen",
@@ -14,7 +14,10 @@
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "mongodb": "^6.9.0",
+    "mongoose": "^8.7.1",
     "morgan": "^1.10.0",
     "static": "^2.0.0"
   },
