@@ -1,15 +1,16 @@
 // librarys
-require('dotenv').config()
 const express = require('express')
+const app = express()
+require('dotenv').config()
+
+const People = require('./models/people')
 const morgan = require('morgan')
 const cors = require('cors')
-const app = express()
-const People = require('./models/people')
 
-// middleware
 app.use(express.static('dist'))
 app.use(cors())
 app.use(express.json())
+
 // app.use(morgan(':method :url :status :response-time ms :nimi'))  
 // morgan.token('nimi', function (request, response) {
 //     if (request.method === 'POST' && request.body) {
@@ -21,22 +22,32 @@ app.use(express.json())
 //     return ''
 // })
 
+
+//virheidenkäsittely
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
 // // routet
 // hae kaikki
-app.get('/api/people', (request, response) => {
+app.get('/api/people', (request, response, next) => {
   People.find({})
     .then(people => {
       console.log('Data haettu onnistuneesti:', people)
       response.json(people)
     })
-    .catch(error => {
-      console.error('Virhe datan haussa:', error)
-      response.status(500).send({ error: 'Tietojen haku epäonnistui' })
-    })
+    .catch(error => next(error))
 })
 
 // hae yksittäinen henkilö
-app.get('/api/people/:id', (request, response) => {
+app.get('/api/people/:id', (request, response, next) => {
   People.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -45,10 +56,7 @@ app.get('/api/people/:id', (request, response) => {
         response.status(404).end()
       }
     })
-    .catch(error => {
-      console.log(error)
-      response.status(500).end()
-    })
+    .catch(error => next(error))
 })
 
 //lisää henkilö
@@ -69,68 +77,41 @@ app.post('/api/people', (request, response) => {
   })
 })
 
+//päivitä henkilön tiedot
+app.put('/api/people/:id', (request, response, next) => {
+  const body = request.body
+  const person = {
+    name: body.name,
+    number: body.number
+  }  
 
-// app.get('/api/persons/:id', (request, response) => {
-//     const id = request.params.id
-//     const person = persons.find(person => person.id === id)
-//     if (person) {
-//         response.json(person)
-//       } else {
-//         response.status(404).end()
-//       }
-//     })
+  People.findByIdAndUpdate(request.params.id,
+    person, {new: true})
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+  })
 
-// app.delete('/api/persons/:id', (request, response) => {
-//     const id = request.params.id
-//     persons = persons.filter(person => person.id !== id)
-    
-//     response.status(204).end()
-//     })
+//poista henkilön tiedot
+app.delete('/api/people/:id', (request, response, next) => {
+  People.findByIdAndDelete(request.params.id)
+  .then(result => {
+    response.status(204).end()
+  })
+  .catch(error=> next(error))
+})
 
-//   app.post('/api/persons', (request, response) => {
-//     const body = request.body
 
-//     // Tarkista puuttuuko nimi tai numero
-//     if (!body.name || !body.number) {
-//         return response.status(400).json({ 
-//             error: 'content missing' 
-//         })
-//     }
 
-//     // Tarkista, onko nimi jo olemassa listassa
-//     const exists = persons.find(person => person.name === body.name)
-//     if (exists) {
-//         return response.status(409).json({ 
-//             error: 'the person has been added already' 
-//         })
-//     }
-    
-//     // Luo uusi henkilö
-//     const person = {       
-//         id: (Math.floor(Math.random() * 10000)).toString(),
-//         name: body.name,
-//         number: body.number
-//     }
 
-//     // Lisää henkilö listaan
-//     persons = persons.concat(person)
+// tämä tulee kaikkien muiden middlewarejen ja routejen rekisteröinnin jälkeen!
+app.use(errorHandler)
 
-//     // Palauta lisätty henkilö
-//     response.json(person)
-// })
 
-// app.get('/info/', (request, response) => {
-//     const count = persons.length 
-//     const info = `Phonebook has info for ${count} people` 
-//     const date = new Date()
-//     const result = `
-//     <p>Phonebook has info for ${count} people</p>
-//     <p>${date}</p>
-//     `
-//     response.send(result)
-// })
-    
 
+
+  
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
