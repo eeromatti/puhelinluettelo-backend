@@ -4,7 +4,7 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
-const Person = require('./models/people')
+const People = require('./models/people')
 
 // middleware
 app.use(express.static('dist'))
@@ -21,18 +21,42 @@ app.use(express.json())
 //     return ''
 // })
 
+// const mongoose = require('mongoose')
+
+
+// const url =
+//   `mongodb+srv://eki:kannaa@mangodb.ml2nd.mongodb.net/Phonebook?retryWrites=true&w=majority&appName=MangoDB`
+
+// mongoose.set('strictQuery',false)
+// mongoose.connect(url)
+//   .then(() => {
+//     console.log('MongoDB-yhteys onnistui');
+//   })
+//   .catch((error) => {
+//     console.error('MongoDB-yhteyden muodostaminen epäonnistui:', error);
+//   });
+
+// const peopleSchema = new mongoose.Schema({
+//   name: String,
+//   number: String,
+// })
+
+// const People = mongoose.model('People', peopleSchema, 'people')
+
 
 // // routet
 app.get('/api/people', (request, response) => {
-  Person.find({}).then(people => {
-    response.json(people)
-  })
-})
+  People.find({})
+    .then(people => {
+      console.log('Data haettu onnistuneesti:', people);
+      response.json(people);
+    })
+    .catch(error => {
+      console.error('Virhe datan haussa:', error);
+      response.status(500).send({ error: 'Tietojen haku epäonnistui' });
+    });
+});
 
-// // routet
-// app.get('/api/persons/', (request, response) => {
-//     response.json(persons)
-//   })
 
 // app.get('/api/persons/:id', (request, response) => {
 //     const id = request.params.id
