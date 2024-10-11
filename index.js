@@ -21,41 +21,53 @@ app.use(express.json())
 //     return ''
 // })
 
-// const mongoose = require('mongoose')
-
-
-// const url =
-//   `mongodb+srv://eki:kannaa@mangodb.ml2nd.mongodb.net/Phonebook?retryWrites=true&w=majority&appName=MangoDB`
-
-// mongoose.set('strictQuery',false)
-// mongoose.connect(url)
-//   .then(() => {
-//     console.log('MongoDB-yhteys onnistui');
-//   })
-//   .catch((error) => {
-//     console.error('MongoDB-yhteyden muodostaminen epäonnistui:', error);
-//   });
-
-// const peopleSchema = new mongoose.Schema({
-//   name: String,
-//   number: String,
-// })
-
-// const People = mongoose.model('People', peopleSchema, 'people')
-
-
 // // routet
+// hae kaikki
 app.get('/api/people', (request, response) => {
   People.find({})
     .then(people => {
-      console.log('Data haettu onnistuneesti:', people);
-      response.json(people);
+      console.log('Data haettu onnistuneesti:', people)
+      response.json(people)
     })
     .catch(error => {
-      console.error('Virhe datan haussa:', error);
-      response.status(500).send({ error: 'Tietojen haku epäonnistui' });
-    });
-});
+      console.error('Virhe datan haussa:', error)
+      response.status(500).send({ error: 'Tietojen haku epäonnistui' })
+    })
+})
+
+// hae yksittäinen henkilö
+app.get('/api/people/:id', (request, response) => {
+  People.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      response.status(500).end()
+    })
+})
+
+//lisää henkilö
+app.post('/api/people', (request, response) => {
+  const body = request.body
+
+  if (body.name === undefined) {
+    return response.status(400).json({ error: 'content missing' })
+  }
+
+  const person = new People({
+    name: body.name,
+    number: body.number,
+  })
+
+  person.save().then(savedPeople => {
+    response.json(savedPeople)
+  })
+})
 
 
 // app.get('/api/persons/:id', (request, response) => {
